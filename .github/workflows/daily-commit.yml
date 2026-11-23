@@ -18,19 +18,19 @@ jobs:
       - name: Add daily activity entry
         shell: bash
         run: |
-          date -u +%F | while read -r day; do
-            echo "- ${day}" >> activity.log
-          done
+          day=$(date -u +%F)
+          touch activity.log
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet -- activity.log; then
+          if grep -Fxq "- ${day}" activity.log; then
             echo "No activity entry needed"
             exit 0
           fi
 
-          day=$(date -u +%F)
+          echo "- ${day}" >> activity.log
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add activity.log
-          git diff --cached --quiet || git commit -m "Daily activity: ${day}"
+          git diff --cached --quiet && exit 0
+          git commit -m "Daily activity: ${day}"
           git push
